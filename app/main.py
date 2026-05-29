@@ -17,4 +17,4 @@ app.include_router(auth_router)
 
 @app.get("/")
 def get_root():
-   return{"message": "Welcome to the coolest blog"}
+   return{"message": "Welcome to the state of the art File upload system \"DODOload\""}
