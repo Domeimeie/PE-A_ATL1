@@ -1,7 +1,12 @@
 steps:
   - name: python:3.14-slim
+    id: Install
     entrypoint: bash
-    args: ["-c", "pip install uv && uv sync --frozen && uv run pytest"]
+    args: ["-c", "pip install uv && uv sync --frozen"]
+
+  - name: python:3.14-slim
+    id: Test
+    entrypoint: ./.venv/bin/pytest
 
 options:
   logging: CLOUD_LOGGING_ONLY
