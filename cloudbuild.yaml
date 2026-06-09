@@ -1,12 +1,13 @@
 steps:
-  - name: python:3.14-slim
-    id: Install
-    entrypoint: bash
-    args: ["-c", "pip install uv && uv sync --frozen"]
+  - id: Install
+    name: ghcr.io/astral-sh/uv:python3.14-bookworm-slim
+    entrypoint: uv
+    args: [sync, --frozen]
 
-  - name: python:3.14-slim
-    id: Test
-    entrypoint: ./.venv/bin/pytest
+  - id: Test
+    name: ghcr.io/astral-sh/uv:python3.14-bookworm-slim
+    entrypoint: uv
+    args: [run, pytest]
 
 options:
   logging: CLOUD_LOGGING_ONLY

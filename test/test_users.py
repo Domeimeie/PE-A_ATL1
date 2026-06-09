@@ -23,7 +23,7 @@ def test_create_user(client):
 
 def test_duplicate_user(client, user_homer):
     response = client.post("/users", json={"email": "dodododododod@dododod.local", "password":"gagagagaga"})
-    assert response.status_code == 409
+    assert response.status_code == 40
 
 def test_create_user_no_password(client):
     response = client.post("/users", json={"email": "dodododododod@dododod.local"})
