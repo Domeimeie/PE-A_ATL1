@@ -55,3 +55,6 @@ venv.bak/
 
 # Local SQLite databases
 *.db
+
+# Uploaded files
+uploads/

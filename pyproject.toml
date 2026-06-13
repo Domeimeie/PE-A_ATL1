@@ -9,5 +9,6 @@ dependencies = [
     "httpx2>=2.2.0",
     "pyjwt>=2.10.0",
     "pytest>=9.0.3",
+    "python-multipart>=0.0.29",
     "sqlmodel>=0.0.38",
 ]
