@@ -15,7 +15,7 @@ from app.database import SessionDep
 router = APIRouter(prefix="/files", tags=["files"])
 
 @router.post("/", response_model=FilePublic)
-def create_file(
+def upload_file(
     session: SessionDep,
     upload: UploadFile,
     token: Annotated[dict, Depends(token_auth)],
@@ -35,7 +35,7 @@ def get_files(
     return get_files_service(session, token["user.id"], offset, limit)
 
 @router.get("/{file_id}")
-def get_file(
+def download_file(
     file_id: int,
     session: SessionDep,
     token: Annotated[dict, Depends(token_auth)],
