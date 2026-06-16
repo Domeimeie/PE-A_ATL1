@@ -11,11 +11,11 @@ steps:
 
   - id: Build
     name: gcr.io/cloud-builders/docker
-    args: [build, -t, "${_IMAGE}:latest", .]
+    args: [build, -t, "${_IMAGE}:$COMMIT_SHA", .]
 
   - id: Push
     name: gcr.io/cloud-builders/docker
-    args: [push, "${_IMAGE}:latest"]
+    args: [push, "${_IMAGE}:COMMIT_SHA"]
 
 options:
   logging: CLOUD_LOGGING_ONLY
