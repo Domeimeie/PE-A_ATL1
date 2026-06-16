@@ -9,5 +9,15 @@ steps:
     entrypoint: uv
     args: [run, pytest]
 
+  - id: Build
+    name: gcr.io/cloud-builders/docker
+    args: [build, -t, "${_IMAGE}:latest", .]
+
+  - id: Push
+    name: gcr.io/cloud-builders/docker
+    args: [push, "${_IMAGE}:latest"]
+
 options:
   logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _IMAGE: europe-west6-docker.pkg.dev/$PROJECT_ID/pe-a-atl1/pe-a-atl1
