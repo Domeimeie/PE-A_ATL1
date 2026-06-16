@@ -17,6 +17,21 @@ steps:
     name: gcr.io/cloud-builders/docker
     args: [push, "${_IMAGE}:$COMMIT_SHA"]
 
+  - id: Deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - pe-a-atl1
+      - --image=${_IMAGE}:$COMMIT_SHA
+      - --region=europe-west6
+      - --platform=managed
+      - --port=8000
+      - --min-instances=0
+      - --max-instances=1
+      - --allow-unauthenticated
+
 options:
   logging: CLOUD_LOGGING_ONLY
   dynamic_substitutions: true
