@@ -1,7 +1,7 @@
 FROM python:3.14-alpine AS builder
 WORKDIR /app
 RUN pip install uv
-COPY uv.lock pyproject.toml .
+COPY uv.lock pyproject.toml ./
 RUN uv export --no-dev --format requirements.txt --no-hashes --no-header --no-annotate > requirements.txt
 
 
