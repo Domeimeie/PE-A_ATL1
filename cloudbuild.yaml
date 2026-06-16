@@ -15,7 +15,7 @@ steps:
 
   - id: Push
     name: gcr.io/cloud-builders/docker
-    args: [push, "${_IMAGE}:COMMIT_SHA"]
+    args: [push, "${_IMAGE}:$COMMIT_SHA"]
 
 options:
   logging: CLOUD_LOGGING_ONLY
