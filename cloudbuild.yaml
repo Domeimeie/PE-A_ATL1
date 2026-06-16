@@ -21,4 +21,4 @@ options:
   logging: CLOUD_LOGGING_ONLY
   dynamic_substitutions: true
 substitutions:
-  _IMAGE: europe-west6-docker.pkg.dev/$PROJECT_ID/pe-a-atl1/pe-a-atl1
+  _IMAGE: europe-west6-docker.pkg.dev/he24-blog-dominique/pe-a-atl1/pe-a-atl1
