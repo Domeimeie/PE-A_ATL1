@@ -7,6 +7,23 @@ from app.models.user import User
 from app.services import file as file_service
 
 
+def login(client, user):
+    response = client.post("/auth/login", json={"email": user.email, "password": user.password})
+    return response.json()["access_token"]
+
+def auth_header(token):
+    return {"Authorization": f"Bearer {token}"}
+
+def upload_file(client, token, tag_ids=None, filename="hello.txt", content=b"hello world", content_type="text/plain"):
+    data = {"tag_ids": tag_ids} if tag_ids is not None else {}
+    return client.post(
+        "/files/",
+        files={"upload": (filename, content, content_type)},
+        data=data,
+        headers=auth_header(token),
+    )
+
+
 @fixture(autouse=True)
 def upload_dir(tmp_path, monkeypatch):
     # Change Upload folder to different location for tests.
@@ -33,7 +50,13 @@ def db():
 
     app.dependency_overrides[get_session] = override_get_session
 
-    return Session(engine)
+    with Session(engine) as session:
+        yield session
+
+    # Teardown: drop the override and close the engine's connections so each
+    # test cleans up after itself (no leaked sqlite connections).
+    app.dependency_overrides.clear()
+    engine.dispose()
 
 @fixture
 def client(db):

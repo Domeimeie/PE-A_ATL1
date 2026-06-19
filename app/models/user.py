@@ -5,3 +5,4 @@ class User(SQLModel, table=True):
     email: str = Field(index=True, unique=True)
     password: str
     files: list["File"] = Relationship(back_populates="user")
+    tags: list["Tag"] = Relationship(back_populates="user")

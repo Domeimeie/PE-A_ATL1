@@ -1,16 +1,4 @@
-def login(client, user):
-    response = client.post("/auth/login", json={"email": user.email, "password": user.password})
-    return response.json()["access_token"]
-
-def auth_header(token):
-    return {"Authorization": f"Bearer {token}"}
-
-def upload_file(client, token, filename="hello.txt", content=b"hello world", content_type="text/plain"):
-    return client.post(
-        "/files/",
-        files={"upload": (filename, content, content_type)},
-        headers=auth_header(token),
-    )
+from test.conftest import login, auth_header, upload_file
 
 def test_upload_file(client, user_homer, upload_dir):
     token = login(client, user_homer)

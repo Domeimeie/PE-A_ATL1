@@ -12,3 +12,8 @@ dependencies = [
     "python-multipart>=0.0.29",
     "sqlmodel>=0.0.38",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest-cov>=7.1.0",
+]

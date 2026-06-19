@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Query, UploadFile, Depends
+from fastapi import APIRouter, Query, UploadFile, Depends, Form
 from fastapi.responses import FileResponse
 from app.schemas.file import FilePublic
 from app.security import token_auth
@@ -19,10 +19,11 @@ def upload_file(
     session: SessionDep,
     upload: UploadFile,
     token: Annotated[dict, Depends(token_auth)],
+    tag_ids: Annotated[list[int], Form()] = [],
 ):
     # Take user ID from token
     user_id = token["user.id"]
-    return upload_file_service(upload, user_id, session)
+    return upload_file_service(upload, user_id, session, tag_ids)
 
 
 @router.get("/", response_model=list[FilePublic])
