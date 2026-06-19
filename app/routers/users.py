@@ -29,6 +29,9 @@ def get_users(
 def get_user(user_id: int, session: SessionDep) -> UserPublic:
     return get_user_service(user_id=user_id, session=session)
 
-@router.delete("/{user_id}")
-def delete_user(user_id: int, session: SessionDep) -> dict:
-    return delete_user_service(user_id=user_id, session=session)
+@router.delete("/me")
+def delete_current_user(
+    session: SessionDep,
+    token: Annotated[dict, Depends(token_auth)],
+) -> dict:
+    return delete_user_service(user_id=token["user.id"], session=session)

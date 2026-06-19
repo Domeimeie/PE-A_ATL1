@@ -1,3 +1,4 @@
+from pathlib import Path
 from app.schemas.user import UserCreate
 from app.models.user import User
 from app.database import SessionDep
@@ -30,6 +31,21 @@ def delete_user(user_id: int, session: SessionDep) -> dict:
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    # Clear the file-tag links first
+    for file in user.files:
+        file.tags.clear()
+    session.flush()
+
+    # Delete the users uploaded files from disk and the database.
+    for file in user.files:
+        Path(file.path).unlink(missing_ok=True)
+        session.delete(file)
+
+    # Delete the users tags.
+    for tag in user.tags:
+        session.delete(tag)
+
     session.delete(user)
     session.commit()
     return {"ok": True}
