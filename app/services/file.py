@@ -1,3 +1,4 @@
+import os
 import uuid
 from pathlib import Path
 from app.models.file import File
@@ -6,7 +7,8 @@ from app.database import SessionDep
 from sqlmodel import select
 from fastapi import HTTPException, UploadFile
 
-UPLOAD_DIR = Path("uploads")
+# Path is overridable so deployments can point it at a persistent volume.
+UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", "uploads"))
 
 def upload_file(upload: UploadFile, user_id: int, session: SessionDep, tag_ids: list[int] | None = None) -> File:
     # Resolve the tags first, so an invalid tag aborts before we write to disk.

@@ -1,8 +1,10 @@
+import os
 from typing import Annotated
 from fastapi import Depends
 from sqlmodel import Session, SQLModel, create_engine
 
-sqlite_file_name = "database.db"
+# Path is overridable so deployments can point it at a persistent volume.
+sqlite_file_name = os.environ.get("DATABASE_FILE", "database.db")
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
 connect_args = {"check_same_thread": False}

@@ -31,9 +31,14 @@ steps:
       - --min-instances=0
       - --max-instances=1
       - --allow-unauthenticated
+      # Setup Google Cloud Bucket, and redirect db file and upload folder to it.
+      - --add-volume=name=data,type=cloud-storage,bucket=${_DATA_BUCKET}
+      - --add-volume-mount=volume=data,mount-path=/app/data
+      - --set-env-vars=UPLOAD_DIR=/app/data/uploads,DATABASE_FILE=/app/data/database.db
 
 options:
   logging: CLOUD_LOGGING_ONLY
   dynamic_substitutions: true
 substitutions:
   _IMAGE: europe-west6-docker.pkg.dev/he24-blog-dominique/pe-a-atl1/pe-a-atl1
+  _DATA_BUCKET: pe-a-atl1-data
