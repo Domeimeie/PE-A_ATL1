@@ -35,7 +35,21 @@ Dateien und Tags.
 
 ---
 
-## 🚀 Schnellstart mit uv
+## 🚀 Installation & Start
+
+Das Projekt lässt sich auf drei Arten betreiben: lokal mit **uv**, als **Docker**-Container
+oder vollautomatisch über die **Google-Cloud-Pipeline**. Nach einem lokalen Start
+(uv oder Docker) ist die API erreichbar unter:
+
+```text
+http://127.0.0.1:8000
+```
+
+> 💡 **Interaktive Dokumentation:** FastAPI stellt automatisch eine Swagger-UI
+> unter `http://127.0.0.1:8000/docs` bereit. Dort lassen sich alle Endpunkte
+> direkt ausprobieren.
+
+### 🧰 Lokal mit uv
 
 Voraussetzung: [uv](https://github.com/astral-sh/uv) ist installiert.
 
@@ -47,31 +61,7 @@ uv sync
 uv run fastapi dev app/main.py
 ```
 
-Die API ist anschliessend erreichbar unter:
-
-```text
-http://127.0.0.1:8000
-```
-
-> 💡 **Interaktive Dokumentation:** FastAPI stellt automatisch eine Swagger-UI
-> unter `http://127.0.0.1:8000/docs` bereit. Dort lassen sich alle Endpunkte
-> direkt ausprobieren.
-
----
-
-## 🧪 Tests ausführen
-
-```bash
-# Alle Tests
-uv run pytest
-
-# Mit Code-Coverage-Bericht
-uv run pytest --cov=app --cov-report=term-missing
-```
-
----
-
-## 🐳 Build mit Docker
+### 🐳 Build & Start mit Docker
 
 Das mitgelieferte [Dockerfile](Dockerfile) erstellt ein schlankes Image in zwei
 Stufen (Build der Abhängigkeiten → schlankes Laufzeit-Image).
@@ -87,9 +77,7 @@ docker run -p 8000:8000 pe-a-atl1
 Im Container wird die App mit `fastapi run main.py --host=0.0.0.0` auf Port `8000`
 gestartet.
 
----
-
-## ☁️ Automatisierte Pipeline (Google Cloud)
+### ☁️ Automatisches Deployment (Google Cloud)
 
 Die Datei [cloudbuild.yaml](cloudbuild.yaml) beschreibt eine **Cloud-Build-Pipeline**,
 die bei jedem Push folgende Schritte durchläuft und die Anwendung anschliessend
@@ -103,7 +91,7 @@ auf **Google Cloud Run** (Region `europe-west6`) deployt:
 | `Push`     | Image in die Artifact Registry pushen                    |
 | `Deploy`   | Neue Cloud-Run-Revision ausrollen                        |
 
-### Persistente Speicherung
+#### Persistente Speicherung
 
 Cloud Run hat ein **flüchtiges Dateisystem**. Damit Uploads und die SQLite-Datenbank
 einen Neustart überleben, wird ein **Google-Cloud-Storage-Bucket** als Volume
@@ -113,6 +101,18 @@ unter `/app/data` eingebunden. Die Pfade werden über Umgebungsvariablen gesteue
 | --------------- | ---------------------------------- | ---------------- |
 | `UPLOAD_DIR`    | Ablageort der hochgeladenen Dateien | `uploads`        |
 | `DATABASE_FILE` | Pfad der SQLite-Datenbankdatei      | `database.db`    |
+
+---
+
+## 🧪 Tests ausführen
+
+```bash
+# Alle Tests
+uv run pytest
+
+# Mit Code-Coverage-Bericht
+uv run pytest --cov=app --cov-report=term-missing
+```
 
 ---
 
@@ -148,7 +148,7 @@ Geschützte Endpunkte erwarten einen Bearer-Token im Header:
 Authorization: Bearer <access_token>
 ```
 
-Den Token erhält man über `POST /auth/login`.
+Das Token erhält man über `POST /auth/login`.
 
 #### Typischer Ablauf
 
