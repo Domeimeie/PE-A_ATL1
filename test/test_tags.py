@@ -76,6 +76,30 @@ def test_upload_file_with_tags(client, user_homer):
     assert response.status_code == 200
     assert [tag["id"] for tag in response.json()["tags"]] == [tag_id]
 
+def test_upload_file_with_multiple_tags(client, user_homer):
+    token = login(client, user_homer)
+    tag_a = create_tag(client, token, name="a").json()["id"]
+    tag_b = create_tag(client, token, name="b").json()["id"]
+
+    response = upload_file(client, token, tag_ids=[tag_a, tag_b])
+    assert response.status_code == 200
+    assert sorted(tag["id"] for tag in response.json()["tags"]) == sorted([tag_a, tag_b])
+
+def test_upload_file_with_comma_separated_tags(client, user_homer):
+    # Swagger UI sends a multipart array as a single comma-joined field.
+    token = login(client, user_homer)
+    tag_a = create_tag(client, token, name="a").json()["id"]
+    tag_b = create_tag(client, token, name="b").json()["id"]
+
+    response = client.post(
+        "/files/",
+        files={"upload": ("hello.txt", b"hello world", "text/plain")},
+        data={"tag_ids": f"{tag_a},{tag_b}"},
+        headers=auth_header(token),
+    )
+    assert response.status_code == 200
+    assert sorted(tag["id"] for tag in response.json()["tags"]) == sorted([tag_a, tag_b])
+
 def test_upload_file_with_other_users_tag(client, user_homer, user_hesiod):
     homer_token = login(client, user_homer)
     hesiod_token = login(client, user_hesiod)

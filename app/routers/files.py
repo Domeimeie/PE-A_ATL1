@@ -1,5 +1,5 @@
 from typing import Annotated
-from fastapi import APIRouter, Query, UploadFile, Depends, Form
+from fastapi import APIRouter, Query, UploadFile, Depends, Form, HTTPException
 from fastapi.responses import FileResponse
 from app.schemas.file import FilePublic
 from app.security import token_auth
@@ -19,11 +19,24 @@ def upload_file(
     session: SessionDep,
     upload: UploadFile,
     token: Annotated[dict, Depends(token_auth)],
-    tag_ids: Annotated[list[int], Form()] = [],
+    tag_ids: Annotated[list[str], Form()] = [],
 ):
     # Take user ID from token
     user_id = token["user.id"]
-    return upload_file_service(upload, user_id, session, tag_ids)
+    # Swagger UI sends a multipart array as one comma-joined field ("4,5"),
+    # while curl/clients may send repeated fields. Accept both: split each
+    # value on commas and flatten to a list of ints.
+    parsed_tag_ids = []
+    for value in tag_ids:
+        for part in value.split(","):
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                parsed_tag_ids.append(int(part))
+            except ValueError:
+                raise HTTPException(status_code=422, detail=f"invalid tag id: {part}")
+    return upload_file_service(upload, user_id, session, parsed_tag_ids)
 
 
 @router.get("/", response_model=list[FilePublic])
