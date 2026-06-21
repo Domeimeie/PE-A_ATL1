@@ -81,6 +81,11 @@ gestartet.
 
 ### ☁️ Automatisches Deployment (Google Cloud)
 
+> 🌐 **Live-Instanz:** Die Anwendung läuft unter
+> <https://pe-a-atl1-312796171129.europe-west6.run.app> –
+> die interaktive Swagger-UI ist entsprechend unter
+> [`/docs`](https://pe-a-atl1-312796171129.europe-west6.run.app/docs) erreichbar.
+
 Die Datei [cloudbuild.yaml](cloudbuild.yaml) beschreibt eine **Cloud-Build-Pipeline**,
 die bei jedem Push folgende Schritte durchläuft und die Anwendung anschliessend
 auf **Google Cloud Run** (Region `europe-west6`) deployt:
