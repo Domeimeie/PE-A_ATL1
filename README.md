@@ -6,6 +6,8 @@ diese mit eigenen **Tags** organisieren und ihren Account inklusive aller Daten
 wieder löschen. Jeder Benutzer sieht und verwaltet ausschliesslich seine **eigenen**
 Dateien und Tags.
 
+Das Projekt wurde im Rahmen des Modules PE-A in der HF-ICT als Anwendungs- und Transferleistung erarbeitet.
+
 ---
 
 ## ✨ Funktionsumfang
@@ -217,3 +219,48 @@ curl -X POST http://127.0.0.1:8000/files/ \
 - `pyjwt` – Erstellen/Prüfen der JWT-Token
 - `python-multipart` – nötig, damit FastAPI `multipart/form-data`-Uploads verarbeiten kann
 - `pytest` / `pytest-cov` *(dev)* – Tests und Coverage
+
+---
+
+## 💭 Überlegungen
+
+### Identität aus dem Token statt vom Client
+
+Beim Hochladen oder Löschen wird die `user_id` aus dem authentifizierten JWT
+gelesen und nicht als Parameter akzeptiert. So kann niemand im Namen anderer
+handeln, indem er einfach eine fremde ID mitschickt.
+
+### 404 statt 403 bei fremden Ressourcen
+
+Greift jemand auf eine fremde Datei oder einen fremden Tag zu, wird `404 Not Found`
+(statt `403 Forbidden`) zurückgegeben. So wird nicht verraten, dass die Ressource
+überhaupt existiert. -> Yay für Security!
+
+### Dateien: Bytes auf Disk, Metadaten in der Datenbank
+
+Die eigentlichen Datei-Bytes liegen im Dateisystem, während Name, Typ, Grösse und
+Besitzer in der Datenbank gespeichert werden. Der Dateiname auf der Festplatte wird
+mit einer UUID versehen. Das verhindert Namenskollisionen und Path-Traversal.
+
+### Tags als Many-to-many-Verknüpfung
+
+Tags werden über eine eigene Verknüpfungstabelle mit Dateien verbunden, statt sie
+z. B. als kommaseparierten String an der Datei zu speichern. Nur so lassen sich
+Dateien sauber nach Tag abfragen und ein gelöschter Tag von allen Dateien entfernen.
+
+---
+
+## ⚙️ Potentielle Änderungen/Verbesserungen
+
+### Wechsel auf Cloud SQL
+
+SQLite auf einem GCS-Volume ist nur bedingt für Cloud Run geeignet: Das Locking
+funktioniert nicht zuverlässig (Korruptionsrisiko) und die App muss bei
+`max-instances=1` bleiben. Ein Wechsel auf **Cloud SQL** (verwaltetes PostgreSQL)
+würde dieses Problem lösen und horizontale Skalierung ermöglichen.
+
+### Passwort-Hashing
+
+Passwörter werden aktuell im **Klartext** in der Datenbank gespeichert und
+verglichen. Sie sollten stattdessen mit einem etablierten Verfahren (z. B. bcrypt)
+**gehasht** werden, damit sie bei einem Datenbank-Leak nicht offen einsehbar sind.
