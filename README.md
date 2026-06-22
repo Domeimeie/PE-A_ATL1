@@ -269,3 +269,9 @@ würde dieses Problem lösen und horizontale Skalierung ermöglichen.
 Passwörter werden aktuell im **Klartext** in der Datenbank gespeichert und
 verglichen. Sie sollten stattdessen mit einem etablierten Verfahren (z. B. bcrypt)
 **gehasht** werden, damit sie bei einem Datenbank-Leak nicht offen einsehbar sind.
+
+### Ablaufende Tokens
+
+Die JWT-Tokens haben aktuell **kein Ablaufdatum** und bleiben unbegrenzt gültig –
+selbst nach dem Löschen des Accounts. Ein Ablaufdatum (z. B. Gültigkeit von
+einigen Stunden) würde das Risiko bei einem geleakten Token deutlich verringern.
