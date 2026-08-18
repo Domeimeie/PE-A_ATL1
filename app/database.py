@@ -4,11 +4,15 @@ from fastapi import Depends
 from sqlmodel import Session, SQLModel, create_engine
 
 # Path is overridable so deployments can point it at a persistent volume.
-sqlite_file_name = os.environ.get("DATABASE_FILE", "database.db")
-sqlite_url = f"sqlite:///{sqlite_file_name}"
+# sqlite_file_name = os.environ.get("DATABASE_FILE", "database.db")
+# sqlite_url = f"sqlite:///{sqlite_file_name}"
 
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, connect_args=connect_args)
+# connect_args = {"check_same_thread": False}
+
+DEFAULT_DATABASE_URL = "postgresql+psycopg://dodoload:dodoload@localhost:5432/dodoload"
+database_url = os.environ.get("DATABASE_URL", DEFAULT_DATABASE_URL)
+
+engine = create_engine(database_url)
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)

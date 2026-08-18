@@ -1,3 +1,4 @@
+import os
 from pytest import fixture
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
@@ -35,11 +36,16 @@ def upload_dir(tmp_path, monkeypatch):
 
 @fixture
 def db():
-    sqlite_file_name = "database_test.db"
-    sqlite_url = f"sqlite:///{sqlite_file_name}"
+    # sqlite_file_name = "database_test.db"
+    # sqlite_url = f"sqlite:///{sqlite_file_name}"
 
-    connect_args = {"check_same_thread": False}
-    engine = create_engine(sqlite_url, connect_args=connect_args)
+    # connect_args = {"check_same_thread": False}
+
+    test_database_url = os.environ.get(
+        "TEST_DATABASE_URL",
+        "postgresql+psycopg://dodoload:dodoload@localhost:5432/dodoload_test",
+    )
+    engine = create_engine(test_database_url)
 
     SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)

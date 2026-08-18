@@ -1,0 +1,35 @@
+services:
+
+  db:
+    image: postgres
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_USER: dodoload
+      POSTGRES_PASSWORD: dodoload
+      POSTGRES_DB: dodoload
+    volumes:
+      - db-data:/var/lib/postgresql      # source:target:options.
+      - ./docker/dbinit:/docker-entrypoint-initdb.d:ro
+    ports:
+    - 5432:5432
+
+  app:
+    build: .
+    restart: always
+    environment:
+      DATABASE_URL: postgresql+psycopg://dodoload:dodoload@db:5432/dodoload
+    ports:
+      - 8000:8000
+    volumes:
+      - uploads:/app/uploads
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+volumes:
+  db-data:
+  uploads:

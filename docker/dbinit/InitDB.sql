@@ -1,0 +1,1 @@
+CREATE DATABASE dodoload_test;
