@@ -308,9 +308,6 @@ pusht und die Anwendung auf **Cloud Run** deployt.
 
 ### Schritt 1: Projekt und APIs vorbereiten
 
-> ⚠️ **Vor der Abgabe prüfen:** Die Liste der APIs und der `gcloud`-Befehl unten sind der Standardweg. Bitte
-> mit deinem tatsächlichen Vorgehen in der Konsole abgleichen.
-
 Im Google-Cloud-Projekt `he24-blog-dominique` wurden die benötigten APIs
 aktiviert. Ohne diese schlagen die späteren Schritte mit einem
 `SERVICE_DISABLED`-Fehler fehl.
@@ -391,12 +388,12 @@ Damit die Pipeline automatisch startet, wurde das GitHub-Repository über
 Der Trigger reagiert damit ausschliesslich auf Pushes nach `main`. Pushes auf
 andere Branches lösen keinen Build aus.
 
-![Cloud Build: Trigger, Event und Quelle](docs/screenshots/03-cloudbuild-trigger.png)
+![Cloud Build: Trigger, Event und Quelle](docs/screenshots/03a-cloudbuild-trigger.png)
 
 *Trigger `HE24-Blog-Dominique` in der Region `global`: Event „Push to a branch",
 Quelle `Domeimeie/PE-A_ATL1` (GitHub App), Branch-Muster `^main$`.*
 
-![Cloud Build: Konfigurationsdatei des Triggers](docs/screenshots/03-02-cloudbuild-trigger.png)
+![Cloud Build: Konfigurationsdatei des Triggers](docs/screenshots/03b-cloudbuild-trigger.png)
 
 *Konfigurationstyp „Cloud Build configuration file (YAML or JSON)" mit dem
 Speicherort `/cloudbuild.yaml` im Repository.*
@@ -404,9 +401,6 @@ Speicherort `/cloudbuild.yaml` im Repository.*
 ---
 
 ### Schritt 4: Berechtigungen des Service-Accounts
-
-> ⚠️ **Vor der Abgabe prüfen:** Diese Rollen sind der übliche Satz für eine solche Pipeline, aber **nicht**
-> aus deinem Projekt ausgelesen. Bitte unter IAM verifizieren.
 
 Der Build läuft unter einem Service-Account. Dieser braucht mehr Rechte, als er
 standardmässig mitbringt. Ohne sie scheitert der `Deploy`-Schritt mit
@@ -445,8 +439,8 @@ substitutions:
 
 ![Cloud Build: erfolgreicher Build](docs/screenshots/04-cloudbuild-erfolg.png)
 
-*Erfolgreicher Build mit allen fünf Schritten in Grün, Gesamtdauer 2:42 Min.
-(Install 8 s, Test 9 s, Build 39 s, Push 15 s, Deploy 1:23).*
+*Erfolgreicher Build vom 30. August 2026 zu Commit `dede5f5`: alle fünf Schritte
+grün (Install 10 s, Test 11 s, Build 44 s, Push 16 s, Deploy 1:32).*
 
 ![Cloud Build: Log des Test-Schritts](docs/screenshots/05-cloudbuild-log-tests.png)
 
@@ -465,29 +459,19 @@ Der `Deploy`-Schritt rollt die neue Revision aus. Die wichtigsten Parameter:
 | `--port`                | `8000`          | Port, auf dem der Container lauscht            |
 | `--min-instances`       | `0`             | Keine Kosten im Leerlauf (dafür Kaltstart)     |
 | `--max-instances`       | `1`             | Nötig wegen des SQLite-Locking (siehe unten)   |
-
-> ⚠️ **Vor der Abgabe prüfen:** Die `cloudbuild.yaml` setzt `--max-instances=1`,
-> Screenshot 11 zeigt für den laufenden Dienst aber `Scaling: Auto (min: 0,
-> max: 25)`. Bitte klären, welcher Wert gilt, und Tabelle bzw. Abschnitt
-> „Beschränkung auf eine Instanz" entsprechend anpassen.
 | `--allow-unauthenticated` | (Flag)        | Öffentlich erreichbare API                     |
 
 ![Cloud Run: Dienstübersicht](docs/screenshots/06-cloudrun-uebersicht.png)
 
-*Cloud-Run-Übersicht mit dem Dienst `pe-a-atl1` in der Region `europe-west6`,
-zuletzt aktualisiert am 10. August 2026.*
+*Die Dienstliste in Cloud Run: `pe-a-atl1` als Container-Dienst in der Region
+`europe-west6`, Authentifizierung `Public access` und Ingress `All`, zuletzt
+ausgerollt durch den Default compute SA.*
 
-> 📸 **Screenshot 7 · Cloud Run: Revisionen**
-> Zu sehen: die Revisionsliste, in der erkennbar ist, dass bei jedem
-> erfolgreichen Build eine neue Revision 100 % des Traffics übernimmt.
-> Ablegen unter `docs/screenshots/07-cloudrun-revisionen.png`.
+![Laufende Anwendung: Swagger-UI](docs/screenshots/07-swagger-ui-live.png)
 
-![Cloud Run: Revisionen](docs/screenshots/07-cloudrun-revisionen.png)
-
-![Laufende Anwendung: Swagger-UI](docs/screenshots/08-swagger-ui-live.png)
-
-*Die Swagger-UI der laufenden Anwendung mit den Gruppen `users`, `files`
-und `tags`.*
+*Die Swagger-UI unter der Cloud-Run-URL
+`pe-a-atl1-312796171129.europe-west6.run.app/docs` mit den Gruppen `users`,
+`files`, `tags` und `auth`.*
 
 ---
 
@@ -498,10 +482,10 @@ Test **absichtlich** so verändert, dass er fehlschlägt, im Beispiel eine
 Assertion auf einen falschen Statuscode:
 
 ```python
-# test/test_users.py: absichtlich falscher Erwartungswert (Commit 66462c1)
+# test/test_users.py: absichtlich falscher Erwartungswert (Commit 3926924)
 def test_duplicate_user(client, user_homer):
-    response = client.post("/users", json={"email": "dodododododod@dododod.local",
-                                           "password": "gagagagaga"})
+    response = client.post("/users", json={"email": user_homer.email,
+                                           "password": user_homer.password})
     assert response.status_code == 40    # korrekt wäre 409
 ```
 
@@ -518,26 +502,27 @@ Nach dem Push auf `main` verhält sich Cloud Build wie erwartet:
 Der Build wird als **FAILURE** markiert. Entscheidend: In der Artifact Registry
 erscheint **kein neues Image** und auf Cloud Run entsteht **keine neue
 Revision**. Die zuvor deployte Version bleibt unverändert online und erreichbar.
-Anschliessend wurde die Änderung mit dem Folge-Commit `revert` rückgängig
-gemacht und der nächste Push lief wieder vollständig durch.
+Anschliessend wurde der Erwartungswert wieder auf `409` gesetzt, womit die
+Pipeline beim nächsten Push erneut vollständig durchläuft.
 
-![Cloud Build: fehlgeschlagener Build](docs/screenshots/09-cloudbuild-fehler.png)
+![Cloud Build: fehlgeschlagener Build](docs/screenshots/08-cloudbuild-fehler.png)
 
-*Fehlgeschlagener Build vom 25. August 2026: `Install` grün, `Test` nach 30 s
-rot, die Schritte `Build`, `Push` und `Deploy` wurden gar nicht erst gestartet.*
+*Fehlgeschlagener Build vom 30. August 2026 zu Commit `3926924`: `Install` grün,
+`Test` nach 13 s rot, die Schritte `Build`, `Push` und `Deploy` wurden gar nicht
+erst gestartet.*
 
-> 📸 **Screenshot 10 · Cloud Build: Log mit der fehlgeschlagenen Assertion**
-> Zu sehen: der Log-Ausschnitt mit der pytest-Ausgabe (`1 failed`, `AssertionError`)
-> und der abschliessenden Meldung, dass der Build abgebrochen wurde.
-> Ablegen unter `docs/screenshots/10-cloudbuild-fehler-log.png`.
+![Cloud Build: Log der fehlgeschlagenen Assertion](docs/screenshots/09-cloudbuild-fehler-log.png)
 
-![Cloud Build: Log der fehlgeschlagenen Assertion](docs/screenshots/10-cloudbuild-fehler-log.png)
+*Log des `Test`-Schritts: `test_duplicate_user` scheitert mit `assert 409 == 40`,
+Ergebnis `1 failed, 27 passed`. Der Exit-Code bricht die Pipeline ab.*
 
-![Cloud Run: unveränderte Revision](docs/screenshots/11-cloudrun-keine-neue-revision.png)
+![Cloud Run: unveränderte Revision](docs/screenshots/10-cloudrun-keine-neue-revision.png)
 
-*Revisionsliste des Dienstes: Die aktive Revision `pe-a-atl1-00014-c6v` vom
-10. August 2026 hält weiterhin 100 % des Traffics, obwohl am 25. August ein
-Build ausgelöst wurde.*
+*Revisionsliste und Detailansicht: Die aktive Revision `pe-a-atl1-00015-rrs`
+stammt aus dem erfolgreichen Build von 21:14 Uhr und hält 100 % des Traffics.
+Der fehlgeschlagene Build von 21:17 Uhr hat keine neue Revision erzeugt.
+Rechts sichtbar: `Revision max. instances = 1`, Port `8000` sowie die beiden
+Umgebungsvariablen `UPLOAD_DIR` und `DATABASE_FILE`.*
 
 ---
 
