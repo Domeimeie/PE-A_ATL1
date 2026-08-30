@@ -36,16 +36,19 @@ def upload_dir(tmp_path, monkeypatch):
 
 @fixture
 def db():
-    # sqlite_file_name = "database_test.db"
-    # sqlite_url = f"sqlite:///{sqlite_file_name}"
+    # TEST_DATABASE_URL wins whenever it is set, e.g. Postgres via docker compose:
+    #   TEST_DATABASE_URL=postgresql+psycopg://dodoload:dodoload@localhost:5432/dodoload_test
+    # Without it the tests run against a local SQLite file, so they need no
+    # database server (that is what Cloud Build does).
+    test_database_url = os.environ.get("TEST_DATABASE_URL")
 
-    # connect_args = {"check_same_thread": False}
+    if not test_database_url:
+        test_database_url = "sqlite:///database_test.db"
 
-    test_database_url = os.environ.get(
-        "TEST_DATABASE_URL",
-        "postgresql+psycopg://dodoload:dodoload@localhost:5432/dodoload_test",
-    )
-    engine = create_engine(test_database_url)
+    # check_same_thread is a SQLite-only connect argument.
+    connect_args = {"check_same_thread": False} if test_database_url.startswith("sqlite") else {}
+
+    engine = create_engine(test_database_url, connect_args=connect_args)
 
     SQLModel.metadata.drop_all(engine)
     SQLModel.metadata.create_all(engine)
