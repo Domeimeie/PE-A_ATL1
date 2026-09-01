@@ -7,7 +7,9 @@ from app.services.file import (
     upload_file as upload_file_service,
     get_files as get_files_service,
     delete_file as delete_file_service,
-    get_file as get_file_service
+    get_file as get_file_service,
+    add_tags_to_file as add_tags_to_file_service,
+    remove_tags_from_file as remove_tags_from_file_service
 )
 from app.database import SessionDep
 
@@ -64,3 +66,41 @@ def delete_file(
     token: Annotated[dict, Depends(token_auth)],
 ):
     return delete_file_service(file_id, token["user.id"], session)
+
+@router.post("/{file_id}/tags", response_model=FilePublic)
+def add_tags_to_file(
+    file_id: int,
+    session: SessionDep,
+    token: Annotated[dict, Depends(token_auth)],
+    tag_ids: Annotated[list[str], Form()] = [],
+):
+    parsed_tag_ids = []
+    for value in tag_ids:
+        for part in value.split(","):
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                parsed_tag_ids.append(int(part))
+            except ValueError:
+                raise HTTPException(status_code=422, detail=f"invalid tag id: {part}")
+    return add_tags_to_file_service(file_id, token["user.id"], parsed_tag_ids, session)
+
+@router.delete("/{file_id}/tags", response_model=FilePublic)
+def remove_tags_from_file(
+    file_id: int,
+    session: SessionDep,
+    token: Annotated[dict, Depends(token_auth)],
+    tag_ids: Annotated[list[str], Form()] = [],
+):
+    parsed_tag_ids = []
+    for value in tag_ids:
+        for part in value.split(","):
+            part = part.strip()
+            if not part:
+                continue
+            try:
+                parsed_tag_ids.append(int(part))
+            except ValueError:
+                raise HTTPException(status_code=422, detail=f"invalid tag id: {part}")
+    return remove_tags_from_file_service(file_id, token["user.id"], parsed_tag_ids, session)

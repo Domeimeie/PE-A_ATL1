@@ -67,3 +67,29 @@ def delete_file(file_id: int, user_id: int, session: SessionDep):
     session.delete(file)
     session.commit()
     return {"ok": True}
+
+def add_tags_to_file(file_id: int, user_id: int, tag_ids: list[int], session: SessionDep) -> File:
+    file = get_file(file_id, user_id, session)
+    for tag_id in tag_ids:
+        tag = session.exec(select(Tag).where(Tag.id == tag_id)).first()
+        if not tag or tag.user_id != user_id:
+            raise HTTPException(status_code=404, detail="tag not found")
+        if tag not in file.tags:
+            file.tags.append(tag)
+    session.add(file)
+    session.commit()
+    session.refresh(file)
+    return file
+
+def remove_tags_from_file(file_id: int, user_id: int, tag_ids: list[int], session: SessionDep) -> File:
+    file = get_file(file_id, user_id, session)
+    for tag_id in tag_ids:
+        tag = session.exec(select(Tag).where(Tag.id == tag_id)).first()
+        if not tag or tag.user_id != user_id:
+            raise HTTPException(status_code=404, detail="tag not found")
+        if tag in file.tags:
+            file.tags.remove(tag)
+    session.add(file)
+    session.commit()
+    session.refresh(file)
+    return file
